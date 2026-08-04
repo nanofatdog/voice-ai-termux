@@ -29,6 +29,7 @@ def ask_llm(user_text: str) -> str:
         ],
         "max_tokens": 300,
         "temperature": 0.7,
+        "reasoning_effort": "none",
     }
     last = ""
     for attempt in range(3):

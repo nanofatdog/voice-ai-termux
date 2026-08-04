@@ -15,7 +15,7 @@ import os
 import urllib.request
 
 BASE_URL = os.environ.get("LLM_BASE", "http://YOUR_LLM_HOST:PORT/v1")
-MODEL = os.environ.get("LLM_MODEL", "/models/your-multimodal-model.gguf")
+MODEL = os.environ.get("LLM_MODEL", "/models/gemma-4-E4B-it-heretic-IQ4_NL-imatrix.gguf")
 SYSTEM_PROMPT = (
     "คุณคือผู้ช่วย AI ที่เป็นมิตร พูดภาษาไทย อธิบายให้กระชับ เข้าใจง่าย"
 )

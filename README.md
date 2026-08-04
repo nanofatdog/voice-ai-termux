@@ -21,6 +21,25 @@ AI ที่พูดคุยได้ด้วยเสียง รันบ�
 
 ---
 
+## 🧠 Model (LLM) ที่ใช้จริง
+
+โปรเจกต์นี้ใช้ **Gemma 4 E4B** (multimodal) — เป็น model ที่ **อ่านเสียง/ฟังเสียงได้โดยตรง** + รองรับ **function calling** (web search)
+
+- **Model:** `gemma-4-E4B-it-heretic-IQ4_NL-imatrix.gguf`
+  - Gemma 4 E4B (Multimodal, instruct) — ฟังเสียง + ดูภาพ + อ่านข้อความ
+  - quantized `IQ4_NL` (ไฟล์ GGUF) + imatrix
+- **รันด้วย:** llama.cpp server (ต้องโหลดด้วย mmproj เพื่อรองรับ multimodal/เสียง)
+- **รองรับ:** `input_audio` (รับไฟล์ WAV ตรงๆ) + `tools` (function calling)
+
+> ตั้งค่า env:
+> ```bash
+> export LLM_MODEL="/models/gemma-4-E4B-it-heretic-IQ4_NL-imatrix.gguf"
+> ```
+
+> 💡 ถ้าจะใช้ model อื่น — ต้องเป็น multimodal ที่รองรับทั้ง **เสียง (audio input)** และ **function calling (tools)** จึงจะทำงานครบ (ฟังเสียง + web search)
+
+---
+
 ## 🚀 สิ่งที่ต้องมี
 
 | อย่าง | รายละเอียด |

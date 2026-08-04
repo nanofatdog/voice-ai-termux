@@ -217,10 +217,10 @@ def check_mic(duration=2):
     ok = os.path.exists(test_file) and os.path.getsize(test_file) > 0
     if ok:
         db = vad.rms_db(vad.decode_tail(test_file, 0.5))
-        if db < -55:
-            print(f"   ⚠️  ไมค์เปิดได้ แต่เสียงเงียบมาก ({db:.0f}dB) — ตรวจระดับเสียง/ไมค์")
+        if db <= -90:
+            print("   ⚠️  ไมค์เปิดได้ แต่ไม่มีสัญญาณเสียง (ตรวจระดับเสียง/ไมค์)")
         else:
-            print(f"   ✅ ไมค์พร้อมใช้งาน (ระดับเสียง {db:.0f}dB)")
+            print(f"   ✅ ไมค์พร้อมใช้งาน (ระดับเสียง {db:.0f}dB — ถ้าตรวจเจอ -70 ถึง -90 ถือปกติเพราะห้องเงียบ)")
     else:
         print("   ❌ ไมค์ไม่ทำงาน")
         print("      ตรวจ: 1) ติดตั้ง Termux:API  2) เปิด permission ไมโครโฟน  3) รีสตาร์ท Termux/เครื่อง")
@@ -450,6 +450,19 @@ def run(sdir, use_mic=True, text_input=None, use_web=True):
 def main():
     global TTS_PITCH, TTS_RATE, TTS_VARIANT
     _load_voice()
+
+    # เช็คว่า LLM_BASE เป็น placeholder (ยังไม่ได้ตั้งค่า) → error ชัดเจน
+    if "YOUR_LLM_HOST" in LLM_BASE or "your-multimodal" in LLM_MODEL or "your-model" in LLM_MODEL:
+        print("❌ ยังไม่ได้ตั้งค่า LLM server")
+        print("")
+        print("   ตั้งค่า env ก่อนรัน:")
+        print("     export LLM_BASE=\"http://<IP>:<PORT>/v1\"")
+        print("     export LLM_MODEL=\"/path/to/your-model.gguf\"")
+        print("")
+        print("   หรือดู README.md หัวข้อ 'ตั้งค่า LLM server'")
+        print("   (ตัวอย่าง: สร้าง run.sh ตั้งค่า env แล้วรัน)")
+        return
+
     args = sys.argv[1:]
     use_mic = True
     text_input = None

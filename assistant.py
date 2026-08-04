@@ -450,7 +450,19 @@ def main():
         sdir = find_latest_session() or new_session()
         print(f"🔁 ต่อ session: {sdir}")
 
-    run(sdir, use_mic=use_mic, text_input=text_input, use_web=use_web)
+    try:
+        run(sdir, use_mic=use_mic, text_input=text_input, use_web=use_web)
+    except KeyboardInterrupt:
+        # Ctrl+C → ปล่อย mic ให้สะอาด (กัน recorder ค้างถือ mic)
+        print("\n👋 ปิดโปรแกรม — กำลังปล่อย mic...", flush=True)
+        try:
+            import record_until_silence as _vad
+            if _vad._has_stale_recorder():
+                _vad._release_mic()
+            _vad._kill_recorders()
+        except Exception:
+            pass
+        print("✅ ปล่อย mic เรียบร้อยแล้ว — เปิดใหม่ได้เลย")
 
 
 if __name__ == "__main__":

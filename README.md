@@ -52,6 +52,34 @@ AI ที่พูดคุยได้ด้วยเสียง รันบ�
 
 ---
 
+## 📦 Dependencies (สิ่งที่ต้องติดตั้ง)
+
+โปรเจกต์นี้ **ใช้ Python standard library ล้วน** — **ไม่ต้อง pip install package ใดๆ**
+
+### Termux packages (เทียบเท่า apt)
+
+ติดตั้งใน Termux:
+```bash
+pkg update
+pkg install termux-api ffmpeg curl python git
+```
+
+| package | ใช้ทำอะไร |
+|---------|----------|
+| `termux-api` | ควบคุมไมโครโฟน/ลำโพง (`termux-microphone-record`, `termux-tts-speak`) |
+| `ffmpeg` | ถอด/แปลงเสียง (อ่านไฟล์ Opus, ตัดเสียงเงียบ) |
+| `curl` | ค้นเว็บ (websearch.py) |
+| `python` | รันสคริปต์ (stdlib ล้วน ไม่มี pip dep) |
+| `git` | clone โปรเจกต์ |
+
+> ✅ ไม่มี `pip install ...` — เปิด `requirements.txt` แล้วจะเห็นว่าเป็นแค่ comment บอกว่าใช้ stdlib ล้วน
+> ไม่ต้องติดตั้ง openai/requests/numpy ฯลฯ
+
+### แอพ Android (ติดตั้งจาก F-Droid)
+- **Termux** + **Termux:API** (ดูหัวข้อ "การตั้งค่า Android")
+
+---
+
 ## 📱 การตั้งค่า Android (สำคัญมาก!)
 
 โปรเจกต์นี้ต้องใช้ **ไมโครโฟน** และ **ลำโพง** ของเครื่อง ดังนั้นต้องติดตั้งแอพ + เปิด permission ให้ถูกต้อง ตามขั้นตอนด้านล่าง
@@ -69,7 +97,7 @@ AI ที่พูดคุยได้ด้วยเสียง รันบ�
 - ติดตั้งเสร็จ เปิด Termux แล้วติดตั้งตัวเชื่อม:
   ```bash
   pkg update
-  pkg install termux-api ffmpeg python git
+  pkg install termux-api ffmpeg curl python git
   ```
 
 ### 3. เปิด Permission ไมโครโฟน (จำเป็น!)

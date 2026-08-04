@@ -1,0 +1,9 @@
+# 📦 Python dependencies
+#
+# โปรเจกต์นี้ใช้ Python standard library เท่านั้น (base64, json, os, re,
+# subprocess, urllib, array, math, ...) — ไม่ต้องติดตั้ง package ผ่าน pip เลย
+#
+# ติดตั้งได้เลยโดยไม่ต้อง pip install:
+#   python3 -c "print('พร้อมใช้งาน')"
+#
+# dependencies ที่ต้องติดตั้งเป็นแค่ระบบ (Termux/apt) — ดู README.md

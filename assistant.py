@@ -188,6 +188,51 @@ def record_wav():
     return vad.record_until_silence(WAV_PATH)
 
 
+def check_mic(duration=2):
+    """ตรวจสอบไมค์ก่อนเริ่ม — บันทึกสั้นๆ (limit → ปล่อย mic สะอาด) แล้วตรวจว่าได้เสียง
+    คืน True ถ้าไมค์ใช้ได้, พิมพ์คำแนะนำถ้าไม่ได้"""
+    import record_until_silence as vad
+    print("🎙️  ตรวจสอบไมโครโฟน...", flush=True)
+    vad._kill_recorders()
+    time.sleep(0.5)
+
+    test_file = os.path.join(vad.CACHE, "mic_check.opus")
+    try:
+        os.remove(test_file)
+    except OSError:
+        pass
+
+    # บันทึก 2 วิ — ใช้ limit (completes naturally → ปล่อย mic สะอาด ไม่ค้าง)
+    try:
+        subprocess.run(
+            ["termux-microphone-record", "-d", "-f", test_file,
+             "-l", str(duration), "-r", "16000", "-c", "1", "-e", "opus"],
+            capture_output=True, timeout=duration + 10,
+        )
+    except Exception:
+        pass
+    time.sleep(1)
+
+    # ตรวจว่าได้เสียงจริงไหม (ไม่เงียบสนิท)
+    ok = os.path.exists(test_file) and os.path.getsize(test_file) > 0
+    if ok:
+        db = vad.rms_db(vad.decode_tail(test_file, 0.5))
+        if db < -55:
+            print(f"   ⚠️  ไมค์เปิดได้ แต่เสียงเงียบมาก ({db:.0f}dB) — ตรวจระดับเสียง/ไมค์")
+        else:
+            print(f"   ✅ ไมค์พร้อมใช้งาน (ระดับเสียง {db:.0f}dB)")
+    else:
+        print("   ❌ ไมค์ไม่ทำงาน")
+        print("      ตรวจ: 1) ติดตั้ง Termux:API  2) เปิด permission ไมโครโฟน  3) รีสตาร์ท Termux/เครื่อง")
+
+    vad._kill_recorders()
+    try:
+        os.remove(test_file)
+    except OSError:
+        pass
+    return ok
+
+
 # ==================== TTS (เสียงผู้หญิงไทยคนเดียว) ====================
 def clean_tts_text(text):
     """ลบ markdown/สัญลักษณ์ที่จะถูกอ่านเป็นเสียง (**, #, `, _, ~, []() ฯลฯ)"""
@@ -411,6 +456,8 @@ def main():
     use_web = True
     new = False
     do_voice_test = False
+    do_mic_check = False
+    skip_mic_check = False
     i = 0
     while i < len(args):
         a = args[i]
@@ -436,12 +483,28 @@ def main():
             TTS_VARIANT = args[i + 1]; i += 1
         elif a == "--voice-test":
             do_voice_test = True
+        elif a == "--check-mic":
+            do_mic_check = True
+        elif a == "--no-mic-check":
+            skip_mic_check = True
         i += 1
 
     if do_voice_test:
         print(f"🔊 ทดสอบเสียง: pitch={TTS_PITCH} rate={TTS_RATE} variant={TTS_VARIANT}")
         tts("สวัสดีค่ะ ฉันคือผู้ช่วยเสียงผู้หญิงนะคะ")
         return
+
+    if do_mic_check:
+        ok = check_mic()
+        print("\n(รัน `python3 assistant.py` เพื่อเริ่มคุย)")
+        return
+
+    # ตรวจไมค์ก่อนเริ่ม (เฉพาะโหมดเสียง, เว้นแต่ข้าม) — เจอปัญหาเร็ว
+    if use_mic and not skip_mic_check:
+        mic_ok = check_mic()
+        if not mic_ok:
+            print("\n⚠️  ไมค์ยังใช้ไม่ได้ — ตรวจตามคำแนะนำด้านบน แล้วลองใหม่")
+            print("   (ใช้ `python3 assistant.py --check-mic` ตรวจซ้ำ หรือ --no-mic-check ข้าม)\n")
 
     if new:
         sdir = new_session()

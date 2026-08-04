@@ -175,7 +175,7 @@ python3 voice_tune.py --save --pitch 1.1 --variant th-th-x-thd-local --rate 1.1
 ## ▶️ วิธีใช้
 
 ```bash
-# คุยด้วยเสียง (เริ่ม session ใหม่)
+# คุยด้วยเสียง (เริ่ม session ใหม่) — ตรวจไมค์ให้อัตโนมัติก่อนเริ่ม
 python3 assistant.py --new
 
 # คุยต่อ session ล่าสุด (จำความจำก่อนหน้า)
@@ -183,6 +183,12 @@ python3 assistant.py -c
 
 # โหมดพิมพ์ (ทดสอบ ไม่ใช้ไมค์)
 python3 assistant.py --text "สวัสดี"
+
+# ตรวจสอบไมค์เท่านั้น (เจอปัญหาเร็ว + คำแนะนำ)
+python3 assistant.py --check-mic
+
+# ข้ามการตรวจไมค์ตอนเริ่ม (ถ้าต้องการ)
+python3 assistant.py --no-mic-check
 
 # ปิด web search
 python3 assistant.py --no-web
@@ -194,6 +200,13 @@ python3 assistant.py --voice-test --pitch 1.3
 พูด **"exit"** / **"ออก"** เพื่อจบ
 
 **ตัวอย่าง:** พูดว่า *"ข่าว AI วันนี้มีอะไรบ้าง"* → model เรียก `web_search` → ค้นจริง → สรุปเป็นไทยพร้อมแหล่งที่มา → พูดกลับ
+
+### 🎙️ ตรวจไมค์ก่อนเริ่ม (อัตโนมัติ)
+
+เมื่อรันโหมดเสียง โปรแกรมจะ**ตรวจไมค์ก่อน** (บันทึกสั้นๆ ~2 วิ แล้วตรวจว่าได้เสียง)
+- ✅ ผ่าน → เริ่มคุยได้เลย
+- ❌ ไม่ผ่าน → ขึ้นคำแนะนำ (ติดตั้ง Termux:API / เปิด permission ไมโครโฟน / รีสตาร์ท)
+- ใช้ `--check-mic` เพื่อตรวจซ้ำ / `--no-mic-check` เพื่อข้าม
 
 ---
 

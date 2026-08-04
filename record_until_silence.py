@@ -138,7 +138,7 @@ def record_until_silence(out_wav):
     time.sleep(0.5)
 
     rec = subprocess.Popen(
-        ["termux-microphone-record", "-d", "-f", RAW, "-l", "0",
+        ["termux-microphone-record", "-d", "-f", RAW, "-l", str(MAX_RECORD),
          "-r", "16000", "-c", "1", "-e", "opus"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )

@@ -45,26 +45,66 @@ AI ที่พูดคุยได้ด้วยเสียง รันบ�
 | อย่าง | รายละเอียด |
 |-------|-----------|
 | โทรศัพท์ Android | ตัวที่ใช้คุย (ทดสอบบน Android 11) |
-| **Termux** | ติดตั้งจาก F-Droid: `pkg install termux-api` + ติดตั้งแอพ **Termux:API** (จาก F-Droid) |
+| **Termux** | terminal emulator (ติดตั้งจาก F-Droid) |
+| **Termux:API** | แอพ companion ที่ให้ Termux ใช้ hardware ของเครื่อง (ไมค์, ลำโพง ฯลฯ) |
 | **Server LLM** | เครื่องที่รัน model multimodal (OpenAI-compatible API) — อยู่บน LAN เดียวกับโทรศัพท์ |
 | เน็ต | สำหรับ web search + (optional) ดาวน์โหลด dependencies |
 
 ---
 
-## 🛠️ ขั้นตอนติดตั้ง
+## 📱 การตั้งค่า Android (สำคัญมาก!)
 
-### 1. ติดตั้ง Termux + Termux:API
+โปรเจกต์นี้ต้องใช้ **ไมโครโฟน** และ **ลำโพง** ของเครื่อง ดังนั้นต้องติดตั้งแอพ + เปิด permission ให้ถูกต้อง ตามขั้นตอนด้านล่าง
 
-```bash
-# ใน Termux
-pkg update && pkg install termux-api ffmpeg python git
+### 1. ติดตั้ง Termux
+
+- ไปที่ **F-Droid** → ค้นหา **"Termux"** → ติดตั้ง
+  - F-Droid: https://f-droid.org/packages/com.termux/
+  - ⚠️ **อย่าติดตั้ง Termux จาก Google Play** (เวอร์ชันเก่า/ถูกยกเลิก) — ใช้ F-Droid เท่านั้น
+
+### 2. ติดตั้ง Termux:API
+
+- ไปที่ **F-Droid** → ค้นหา **"Termux:API"** → ติดตั้ง
+  - F-Droid: https://f-droid.org/packages/com.termux.api/
+- ติดตั้งเสร็จ เปิด Termux แล้วติดตั้งตัวเชื่อม:
+  ```bash
+  pkg update
+  pkg install termux-api ffmpeg python git
+  ```
+
+### 3. เปิด Permission ไมโครโฟน (จำเป็น!)
+
+ต้องเปิด **ไมโครโฟน** ให้ทั้ง **Termux** และ **Termux:API**:
+
+```
+การตั้งค่า (Settings) → แอป (Apps)
+  → Termux → สิทธิ์ (Permissions) → ไมโครโฟน (Microphone) → เปิดอนุญาต (Allow)
+  → Termux:API → สิทธิ์ (Permissions) → ไมโครโฟน (Microphone) → เปิดอนุญาต (Allow)
 ```
 
-ติดตั้งแอพ **Termux:API** จาก F-Droid (package: `com.termux.api`)
-จากนั้น grant permission **ไมโครโฟน (RECORD_AUDIO)** ให้ทั้ง Termux และ Termux:API
-(การตั้งค่า → แอป → Termux/Termux:API → สิทธิ์ → ไมโครโฟน)
+> 💡 ทางลัด: รัน `termux-microphone-record -d -f test.opus -l 3` ใน Termux ครั้งแรก
+> มันจะเด้งป๊อปอัปขออนุญาตไมค์ขึ้นมา — แตะ **"อนุญาต/Allow"**
 
-### 2. ดาวน์โหลดโปรเจกต์
+### 4. (แนะนำ) เปิด permission/ตั้งค่าเสริมเพื่อให้ทำงานลื่น
+
+| อย่าง | ทำไม | วิธี |
+|-------|------|-----|
+| **ละเว้นการปรับแบตเตอรี่ให้เหมาะสม** (Ignore battery optimization) | กันระบบฆ่า Termux ตอนรอฟังเสียง | การตั้งค่า → แบตเตอรี่ → ตั้งค่า Termux → "ไม่จำกัด" / ละเว้น |
+| **เปิดใช้งานพื้นหลัง** (Allow background activity) | ให้ Termux ฟังเสียงต่อได้แม้หน้าจอปิด | แอป Termux → สิทธิ์/การใช้งานพื้นหลัง |
+| **การแจ้งเตือน** (Notification) | เห็นสถานะ/ข้อความ error | แอป Termux/Termux:API → การแจ้งเตือน → อนุญาต |
+| **เริ่มอัตโนมัติ** (Autostart — บางยี่ห้อ) | กันระบบไม่ให้ปิด Termux | ขึ้นอยู่กับยี่ห้อ (Xiaomi/OPPO ต้องเปิด "Autostart") |
+
+### 5. ติดตั้ง server LLM (ฝั่ง server)
+
+- รัน model multimodal บนเครื่อง server (เช่น llama.cpp ที่โหลด `gemma-4-E4B` + mmproj)
+- เปิด port ให้โทรศัพท์เข้าถึงได้ (อยู่บน LAN เดียวกัน)
+- ตั้งค่า `LLM_BASE` / `LLM_MODEL` (ดูหัวข้อ "ตั้งค่า LLM server")
+
+---
+
+## 🛠️ ขั้นตอนติดตั้ง (หลังตั้งค่า Android เสร็จ)
+
+### 1. ดาวน์โหลดโปรเจกต์
 
 ```bash
 git clone https://github.com/nanofatdog/voice-ai-termux.git ~/voice-assistant
@@ -72,7 +112,7 @@ cd ~/voice-assistant
 chmod +x *.sh
 ```
 
-### 3. ตั้งค่า LLM server
+### 2. ตั้งค่า LLM server
 
 เปิดไฟล์ `assistant.py` แล้วแก้ 2 ค่า (หรือตั้ง env var):
 
@@ -91,7 +131,7 @@ export LLM_MODEL="/models/your-model.gguf"
 > ⚠️ server ต้องรองรับ **multimodal** (รับไฟล์เสียง) และ **function calling** (tools)
 > เช่น llama.cpp ที่โหลด model multimodal + mmproj
 
-### 4. ตั้งค่าเสียง (TTS) — optional
+### 3. ตั้งค่าเสียง (TTS) — optional
 
 ```bash
 # ลองฟังเสียงแบบต่างๆ แล้วบันทึกค่าที่ชอบ

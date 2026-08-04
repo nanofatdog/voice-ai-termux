@@ -140,24 +140,31 @@ cd ~/voice-assistant
 chmod +x *.sh
 ```
 
-### 2. ตั้งค่า LLM server
+### 2. ตั้งค่า LLM server (ผ่าน .env — ง่ายมาก)
 
-เปิดไฟล์ `assistant.py` แล้วแก้ 2 ค่า (หรือตั้ง env var):
-
+คัดลอกไฟล์ตัวอย่างแล้วแก้ค่าของคุณ:
 ```bash
-# วิธีที่ 1: แก้ใน assistant.py
-export LLM_BASE="http://YOUR_LLM_SERVER_IP:PORT/v1"   # ← ใส่ IP/port จริงของ server
-export LLM_MODEL="/path/to/your-model.gguf"           # ← ชื่อ model บน server
+cp .env.example .env
+nano .env
 ```
 
-หรือตั้งก่อนรัน:
-```bash
-export LLM_BASE="http://192.168.x.x:8080/v1"
-export LLM_MODEL="/models/your-model.gguf"
+ใน `.env` ใส่แค่ IP ก็พอ (ระบบสร้าง URL + หา model ให้อัตโนมัติ):
 ```
+# วิธีที่ 1: ใส่ IP + port แยก
+LLM_IP=192.168.x.x
+LLM_PORT=8080
+
+# หรือวิธีที่ 2: ใส่ URL เต็ม (ถ้า port ไม่ใช่ 8080)
+# LLM_BASE=http://192.168.x.x:11434
+```
+
+**ไม่ต้องตั้ง `LLM_MODEL`** — โปรแกรมจะ **ค้นหา model ให้อัตโนมัติ** จาก server
+(แสดง "🤖 ตรวจพบ model อัตโนมัติ: ..." ตอนเริ่ม)
 
 > ⚠️ server ต้องรองรับ **multimodal** (รับไฟล์เสียง) และ **function calling** (tools)
 > เช่น llama.cpp ที่โหลด model multimodal + mmproj
+
+> 💡 `.env` อยู่ใน `.gitignore` (ไม่ถูก commit) — ตั้งค่าเฉพาะเครื่องคุณ
 
 ### 3. ตั้งค่าเสียง (TTS) — optional
 

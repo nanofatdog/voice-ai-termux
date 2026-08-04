@@ -35,8 +35,8 @@ import websearch
 HOME = os.path.expanduser("~")
 BASE_DIR = os.path.join(HOME, "voice-assistant")
 SESSIONS_DIR = os.path.join(BASE_DIR, "sessions")
-LLM_BASE = os.environ.get("LLM_BASE", "http://YOUR_LLM_HOST:PORT/v1")
-LLM_MODEL = os.environ.get("LLM_MODEL", "/models/gemma-4-E4B-it-heretic-IQ4_NL-imatrix.gguf")
+LLM_BASE = os.environ.get("LLM_BASE", "")
+LLM_MODEL = os.environ.get("LLM_MODEL", "")
 CONTEXT_WINDOW = int(os.environ.get("LLM_CTX", "8192"))
 COMPRESS_AT = 0.70
 COMPRESS_TARGET = 0.35
@@ -44,6 +44,83 @@ RECENT_KEEP = 6
 WAV_PATH = os.path.join(BASE_DIR, "speech.wav")
 
 TODAY_STR = websearch.today()
+
+
+def _load_env():
+    """โหลด .env (ถ้ามี) — ตั้งค่า LLM_IP / LLM_PORT / LLM_MODEL ฯลฯ
+    ง่ายสำหรับผู้ใช้: ใส่แค่ IP ในไฟล์ .env ไฟล์เดียว"""
+    env_file = os.path.join(BASE_DIR, ".env")
+    if not os.path.exists(env_file):
+        return
+    try:
+        with open(env_file, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+    except Exception:
+        pass
+
+
+def _detect_models(base_url):
+    """query /v1/models เพื่อหา model ที่ server มี (ใช้ auto-detect)"""
+    try:
+        base = base_url.rstrip("/")
+        if base.endswith("/v1"):
+            models_url = base + "/models"
+        else:
+            models_url = base + "/v1/models"
+        req = urllib.request.Request(models_url)
+        with urllib.request.urlopen(req, timeout=15) as r:
+            d = json.loads(r.read().decode("utf-8"))
+        data = d.get("data") or d.get("models") or []
+        models = []
+        for m in data:
+            name = m.get("id") or m.get("model") or m.get("name")
+            if name:
+                models.append(str(name))
+        return models
+    except Exception:
+        return []
+
+
+def _init_llm():
+    """แก้ LLM_BASE / LLM_MODEL ให้พร้อมใช้งาน:
+    - รองรับ 2 แบบ: LLM_IP+LLM_PORT แยก  หรือ  LLM_BASE=http://IP:port (port ตามใจ)
+    - ไม่ตั้ง LLM_MODEL → ค้นหาอัตโนมัติจาก server"""
+    global LLM_BASE, LLM_MODEL
+    _load_env()
+
+    llm_base_raw = os.environ.get("LLM_BASE", "").strip().rstrip("/")
+    llm_ip = os.environ.get("LLM_IP", "").strip()
+    llm_port = os.environ.get("LLM_PORT", "8080").strip()
+
+    # 1) ตั้ง LLM_BASE เต็ม (http://IP:port หรือ http://IP:port/v1) → ใช้เลย
+    if llm_base_raw:
+        LLM_BASE = llm_base_raw
+    # 2) ตั้ง LLM_IP (+port) → สร้าง URL ให้
+    elif llm_ip:
+        LLM_BASE = f"http://{llm_ip}:{llm_port}"
+    else:
+        LLM_BASE = ""
+
+    # ปรับให้ลงท้าย /v1 เสมอ (รองรับทั้ง http://IP:port และ http://IP:port/v1)
+    if LLM_BASE:
+        LLM_BASE = LLM_BASE + "/v1" if not LLM_BASE.endswith("/v1") else LLM_BASE
+    else:
+        LLM_BASE = "http://YOUR_LLM_HOST:PORT/v1"
+
+    # auto-detect model ถ้ายังไม่ตั้ง
+    if not LLM_MODEL or "your-" in LLM_MODEL or "YOUR_LLM" in LLM_BASE:
+        if "YOUR_LLM" not in LLM_BASE:
+            models = _detect_models(LLM_BASE)
+            if models:
+                LLM_MODEL = models[0]
+                print(f"🤖 ตรวจพบ model อัตโนมัติ: {LLM_MODEL}", flush=True)
+    if not LLM_MODEL:
+        LLM_MODEL = "/models/your-multimodal-model.gguf"
 
 # ---- เสียง TTS: ล็อกเป็นผู้หญิงไทยคนเดียวตลอด (อ่านจาก voice.json ถ้ามี) ----
 TTS_ENGINE = "com.google.android.tts"
@@ -448,8 +525,9 @@ def run(sdir, use_mic=True, text_input=None, use_web=True):
 
 
 def main():
-    global TTS_PITCH, TTS_RATE, TTS_VARIANT
+    global TTS_PITCH, TTS_RATE, TTS_VARIANT, LLM_BASE, LLM_MODEL
     _load_voice()
+    _init_llm()   # โหลด .env + สร้าง LLM_BASE จาก LLM_IP + auto-detect model
 
     # เช็คว่า LLM_BASE เป็น placeholder (ยังไม่ได้ตั้งค่า) → error ชัดเจน
     if "YOUR_LLM_HOST" in LLM_BASE or "your-multimodal" in LLM_MODEL or "your-model" in LLM_MODEL:

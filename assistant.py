@@ -270,6 +270,7 @@ def check_mic(duration=2):
     คืน True ถ้าไมค์ใช้ได้, พิมพ์คำแนะนำถ้าไม่ได้"""
     import record_until_silence as vad
     print("🎙️  ตรวจสอบไมโครโฟน...", flush=True)
+    vad._release_mic()      # ปล่อย mic ค้างจากรอบก่อนเสมอ (สำคัญ!)
     vad._kill_recorders()
     time.sleep(0.5)
 

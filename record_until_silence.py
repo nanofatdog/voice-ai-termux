@@ -87,10 +87,10 @@ def meter_bar(db, width=32):
 
 def _release_mic():
     """เรียก -q เพื่อให้ MicRecorderService ปล่อย mic อย่างถูกต้อง
-    (timeout กัน -q ค้างตอนไม่มี recording)"""
+    (timeout กัน -q ค้างตอนไม่มี recording — เรียกทุกครั้งก่อนบันทึก)"""
     try:
         subprocess.run(["termux-microphone-record", "-q"],
-                       capture_output=True, timeout=8)
+                       capture_output=True, timeout=5)
     except Exception:
         pass
 
@@ -131,9 +131,8 @@ def record_until_silence(out_wav):
     if os.path.exists(RAW):
         os.remove(RAW)
 
-    # ปล่อย mic ค้างจากรอบก่อน เฉพาะเมื่อมี recorder ค้าง (กัน -q หน่วงทุกครั้งที่เปิด)
-    if _has_stale_recorder():
-        _release_mic()
+    # ปล่อย mic ค้างจากรอบก่อนเสมอ (เรียก -q ทุกครั้ง — กัน mic ค้างที่ app level)
+    _release_mic()
     _kill_recorders()
     time.sleep(0.5)
 

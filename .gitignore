@@ -1,0 +1,19 @@
+# Session / runtime
+sessions/
+voice.json
+speech.wav
+*.wav
+*.opus
+*.aac
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Secrets — ห้าม commit ไฟล์ตั้งค่า/ความลับ
+.env
+*.env
